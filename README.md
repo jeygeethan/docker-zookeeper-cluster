@@ -4,14 +4,23 @@ A simple docker image to create a zookeeper cluster without much pain.
 ## What is this used for?
 There are several zookeeper docker images for creating standalone instances of zookeeper and running them. But there are no images that help in creating a zookeeper cluster across a single host or a multi-host environment. This image will help you to achieve the same.
 
+# Docker image
+```
+docker pull jeygeethan/zookeeper-cluster
+```
+[Docker hub link](https://hub.docker.com/r/jeygeethan/zookeeper-cluster/)
+
+# Looking for kafka cluster?
+Go here : [kafka-cluster](https://github.com/gten/docker-kafka-cluster)
+
 # Zookeeper Cluster (multi-host)
 ## Manual run of the cluster
 
 Follow these steps:
 
-1. Figure out if you will know the IP addresses/hosts of the hosts where you will be running the zookeepers containers
-   a. UCP/Swarm - You can figure this out if you are using a constraint node (-e constraint:node==host_name) in your docker-compose.yml file
-   b. Disconnected hosts - You can figure this out by defining the set of hosts where you will deploy the container
+1. Figure out if you will know the IP addresses/hosts of the hosts where you will be running the zookeepers containers.
+  1. **UCP/Swarm** - You can figure this out if you are using a constraint node (-e constraint:node==host_name) in your docker-compose.yml file
+  2. **Disconnected hosts** - You can figure this out by defining the set of hosts where you will deploy the container
 2. Start running the containers in respective hosts or compile a sample docker-compose.yml as given below
 
 ### Generic script to run the zookeeper container:
