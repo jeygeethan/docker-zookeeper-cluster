@@ -1,48 +1,128 @@
 # docker-zookeeper-cluster
-Docker image for the zookeeper cluster.
+A simple docker image to create a zookeeper cluster without much pain. 
 
-Sample docker engine run for the zookeeper:
+## What is this used for?
+There are several zookeeper docker images for creating standalone instances of zookeeper and running them. But there are no images that help in creating a zookeeper cluster across a single host or a multi-host environment. This image will help you to achieve the same.
 
-Change the parameters to suit your needs. $ID means the number of the node (either 1,2,3 etc)
+# Zookeeper Cluster (multi-host)
+## Manual run of the cluster
 
+Follow these steps:
+
+1. Figure out if you will know the IP addresses/hosts of the hosts where you will be running the zookeepers containers
+   a. UCP/Swarm - You can figure this out if you are using a constraint node (-e constraint:node==host_name) in your docker-compose.yml file
+   b. Disconnected hosts - You can figure this out by defining the set of hosts where you will deploy the container
+2. Start running the containers in respective hosts or compile a sample docker-compose.yml as given below
+
+### Generic script to run the zookeeper container:
+
+The example given below is for a three node cluster. Change the parameters to suit your needs. $ID means the id/number of the node (either 1,2,3 etc) you are currently trying to run.
+
+```
 docker run -d --restart=always \
       -p 2181:2181 \
       -p 2888:2888 \
       -p 3888:3888 \
       -v /var/lib/zookeeper:/var/lib/zookeeper \
       -v /var/log/zookeeper:/var/log/zookeeper  \
-      <image_name> zk1,zk2,zk3 $ID
+      jeygeethan/zookeeper-cluster zookeeper_1_ip_or_hostname,zookeeper_2_ip_or_hostname,zookeeper_3_ip_or_hostname $ID
+```
 
-Sample configuration for the three nodes:
+### Sample configuration for the three nodes:
 
-Node1 (10.100.2.196)
+Assume the three nodes are as follows:
 
+1. docker_host_1
+2. docker_host_2
+3. docker_host_3
+
+#### For first node (docker_host_1)
+
+```
 docker run -d --restart=always \
       -p 2181:2181 \
       -p 2888:2888 \
       -p 3888:3888 \
       -v /var/lib/zookeeper:/var/lib/zookeeper \
       -v /var/log/zookeeper:/var/log/zookeeper  \
-      <image_name> 10.100.2.196,10.100.2.71,10.100.2.72 1
+      jeygeethan/zookeeper-cluster docker_host_1,docker_host_2,docker_host_3 1
+```
 
-Node2 (10.100.2.71)
+#### For second node (docker_host_2)
 
+```
 docker run -d --restart=always \
       -p 2181:2181 \
       -p 2888:2888 \
       -p 3888:3888 \
       -v /var/lib/zookeeper:/var/lib/zookeeper \
       -v /var/log/zookeeper:/var/log/zookeeper  \
-      <image_name> 10.100.2.196,10.100.2.71,10.100.2.72 2
+      jeygeethan/zookeeper-cluster docker_host_1,docker_host_2,docker_host_3 2
+```
 
-Node3 (10.100.2.72)
+#### For third node (docker_host_3)
 
+```
 docker run -d --restart=always \
       -p 2181:2181 \
       -p 2888:2888 \
       -p 3888:3888 \
       -v /var/lib/zookeeper:/var/lib/zookeeper \
       -v /var/log/zookeeper:/var/log/zookeeper  \
-      customzk 10.100.2.196,10.100.2.71,10.100.2.72 3
+      jeygeethan/zookeeper-cluster docker_host_1,docker_host_2,docker_host_3 3
+```
 
+## Sample docker-compose.yml for the cluster creation
 
+```
+version: '2'
+services:
+  zk_1:
+    image: jeygeethan/zookeeper-cluster
+    container_name: zk_1
+    ports:
+      - '2181:2181'
+      - '2888:2888'
+      - '3888:3888'
+    volumes:
+      - /var/lib/zookeeper:/var/lib/zookeeper
+      - /var/log/zookeeper:/var/log/zookeeper
+    command: docker_host_1,docker_host_2,docker_host_3 1
+    environment:
+      - constraint:node==docker_host_1
+    networks:
+      - some_overlay_network
+  zk_2:
+    image: jeygeethan/zookeeper-cluster
+    container_name: zk_2
+    ports:
+      - '2181:2181'
+      - '2888:2888'
+      - '3888:3888'
+    volumes:
+      - /var/lib/zookeeper:/var/lib/zookeeper
+      - /var/log/zookeeper:/var/log/zookeeper
+    command: docker_host_1,docker_host_2,docker_host_3 2
+    environment:
+      - constraint:node==docker_host_2
+    networks:
+      - some_overlay_network
+  zk_3:
+    image: jeygeethan/zookeeper-cluster
+    container_name: zk_3
+    ports:
+      - '2181:2181'
+      - '2888:2888'
+      - '3888:3888'
+    volumes:
+      - /var/lib/zookeeper:/var/lib/zookeeper
+      - /var/log/zookeeper:/var/log/zookeeper
+    command: docker_host_1,docker_host_2,docker_host_3 3
+    environment:
+      - constraint:node==docker_host_3
+    networks:
+      - some_overlay_network
+networks:
+  some_overlay_network:
+    external: true
+```
