@@ -4,6 +4,11 @@
 export ZOOKEEPER_SERVERS=$1
 # the second argument provided is vat of this ZooKeeper node:
 export ZOOKEEPER_ID=$2
+# the third argument provided corresponding port of standard 2888:
+export ZOOKEEPER_2888=$3
+# the third argument provided corresponding port of standard 3888:
+export ZOOKEEPER_3888=$4
+
 
 # create data and blog directories:
 mkdir -p $dataDir
@@ -33,7 +38,7 @@ do
         # if IP's are used instead of hostnames, every ZooKeeper host has to specify itself as follows
         ZKIP=0.0.0.0
     fi
-    ZOOKEEPER_CONFIG="$ZOOKEEPER_CONFIG"$'\n'"server.$ZKID=$ZKIP:2888:3888"
+    ZOOKEEPER_CONFIG="$ZOOKEEPER_CONFIG"$'\n'"server.$ZKID=$ZKIP:$ZOOKEEPER_2888:$ZOOKEEPER_3888"
 done
 # Finally, write config file:
 echo "$ZOOKEEPER_CONFIG" | tee conf/zoo.cfg
